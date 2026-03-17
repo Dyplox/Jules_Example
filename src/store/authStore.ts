@@ -7,6 +7,7 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   error: string | null;
+  setError: (error: string | null) => void;
   setSession: (session: Session | null) => void;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -18,6 +19,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoading: false,
   error: null,
+
+  setError: (error) => set({ error }),
 
   setSession: (session) => set({ session, user: session?.user || null }),
 

@@ -1,15 +1,13 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './store/authStore';
+import { Login } from './pages/auth/Login';
+import { Register } from './pages/auth/Register';
+import { Welcome } from './pages/onboarding/Welcome';
+import { Setup } from './pages/onboarding/Setup';
+import { Dashboard } from './pages/Dashboard';
 import { Loader2 } from 'lucide-react';
-
-// Carga perezosa de los componentes pesados (Code Splitting por Rutas)
-const Login = lazy(() => import('./pages/auth/Login').then(m => ({ default: m.Login })));
-const Register = lazy(() => import('./pages/auth/Register').then(m => ({ default: m.Register })));
-const Welcome = lazy(() => import('./pages/onboarding/Welcome').then(m => ({ default: m.Welcome })));
-const Setup = lazy(() => import('./pages/onboarding/Setup').then(m => ({ default: m.Setup })));
-const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
 
 const ProtectedRoute = () => {
   const { session } = useAuthStore();
@@ -26,17 +24,6 @@ const AuthRoute = () => {
   }
   return <Outlet />;
 };
-
-const LoadingFallback = () => (
-  <div className="min-h-screen bg-tactical-900 flex items-center justify-center">
-    <div className="text-center">
-      <Loader2 className="h-8 w-8 text-primary-500 animate-spin mx-auto mb-2" />
-      <p className="text-primary-400 text-xs tracking-widest uppercase animate-pulse">
-        Cargando interfaz...
-      </p>
-    </div>
-  </div>
-);
 
 function App() {
   const { setSession } = useAuthStore();
@@ -72,22 +59,20 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          <Route element={<AuthRoute />}>
-            <Route path="/onboarding" element={<Welcome />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Route>
+      <Routes>
+        <Route element={<AuthRoute />}>
+          <Route path="/onboarding" element={<Welcome />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Route>
 
-          <Route element={<ProtectedRoute />}>
-            <Route path="/onboarding/setup" element={<Setup />} />
-            <Route path="/" element={<Dashboard />} />
-          </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/onboarding/setup" element={<Setup />} />
+          <Route path="/" element={<Dashboard />} />
+        </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </BrowserRouter>
   );
 }
