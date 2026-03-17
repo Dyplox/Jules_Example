@@ -11,11 +11,13 @@ export function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [localError, setLocalError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLocalError('');
     if (password !== confirmPassword) {
-      alert('Los códigos de acceso no coinciden');
+      setLocalError('Los códigos de acceso no coinciden');
       return;
     }
     await signUp(email, password);
@@ -38,9 +40,9 @@ export function Register() {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6 tactical-glass p-8 rounded-2xl">
-          {error && (
+          {(error || localError) && (
             <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-lg text-sm">
-              {error}
+              {localError || error}
             </div>
           )}
 
