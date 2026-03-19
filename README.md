@@ -71,3 +71,31 @@ export default defineConfig([
   },
 ])
 ```
+
+## Estructura del Proyecto
+
+```
+.
+├── .env                  # Variables de entorno (ej. Supabase URL y Anon Key)
+├── public/               # Archivos estáticos públicos
+├── src/                  # Código fuente de la aplicación
+│   ├── assets/           # Imágenes y otros recursos
+│   ├── components/       # Componentes React reutilizables
+│   │   └── ui/           # Componentes UI (Botones, Inputs Tácticos, etc.)
+│   ├── lib/              # Configuración de librerías de terceros
+│   │   └── supabase.ts   # Cliente de Supabase
+│   ├── pages/            # Páginas y vistas principales de la aplicación
+│   │   ├── auth/         # Vistas de autenticación (Login.tsx, Register.tsx)
+│   │   └── onboarding/   # Vistas de Onboarding
+│   ├── store/            # Gestión de estado global
+│   │   └── authStore.ts  # Zustand Store para el estado de autenticación de Supabase
+│   ├── utils/            # Funciones de utilidad (ej. cn para Tailwind)
+│   ├── App.tsx           # Componente principal y enrutamiento (React Router)
+│   ├── index.css         # Estilos globales y Tailwind CSS
+│   └── main.tsx          # Punto de entrada de React
+├── eslint.config.js      # Configuración de ESLint
+├── index.html            # Plantilla HTML principal
+├── package.json          # Dependencias y scripts
+├── tsconfig.json         # Configuración de TypeScript
+└── vite.config.ts        # Configuración de Vite
+```
