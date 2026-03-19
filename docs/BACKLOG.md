@@ -5,7 +5,9 @@ Aquí mantenemos todas las ideas, mejoras y errores conocidos, ordenados por pri
 
 ---
 
-## 🏃 Sprint Activo (Sprint 1: Consolidación de Autenticación y Arquitectura Base)
+## 🏃 Sprint Activo (Sprint 1: Onboarding y Login)
+
+**[En Progreso]** -> Ver desglose detallado en [`docs/SPRINT_1.md`](SPRINT_1.md)
 **Objetivo del Sprint:** Garantizar que el flujo de autenticación, el estado global (`useAuthStore`) y la integración inicial con Supabase funcionen de manera fluida y sin errores de consola o de experiencia de usuario.
 
 ### Tareas del Sprint (Por hacer / En Progreso / Hecho):
