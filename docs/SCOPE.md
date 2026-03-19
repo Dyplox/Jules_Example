@@ -27,7 +27,7 @@ Lo siguiente forma parte de los entregables acordados para la versión inicial (
 ### 2.4 Seguridad y Calidad
 - Implementación básica de Row Level Security (RLS) en Supabase para proteger los datos de los usuarios.
 - Validación de datos en el cliente y manejo de errores.
-- Código limpio que pase `npm run lint` y `npm run build` sin advertencias críticas.
+- Código limpio que pase `pnpm run lint` y `pnpm run build` sin advertencias críticas.
 
 ## 3. Fuera de Alcance (Out of Scope) para el MVP
 Lo siguiente **NO** se incluirá en el desarrollo inicial del MVP, pero puede planificarse para versiones futuras (v2.0+) en el `BACKLOG.md`:

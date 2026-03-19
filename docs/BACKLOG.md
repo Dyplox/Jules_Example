@@ -12,7 +12,7 @@ Aquí mantenemos todas las ideas, mejoras y errores conocidos, ordenados por pri
 - [ ] **TODO:** Revisar el flujo de Onboarding y Login para identificar problemas o bugs conocidos.
 - [ ] **TODO:** Asegurar que `src/store/authStore.ts` esté manejando los errores de Supabase correctamente y proporcionando feedback a la UI (`setError`).
 - [ ] **TODO:** Revisar y optimizar el diseño táctico de las pantallas de autenticación (`TacticalInput`, `tactical-glass`, etc).
-- [ ] **TODO:** Asegurarse de que `npm run lint` y `npm run build` pasen sin errores tras auditar los componentes base.
+- [ ] **TODO:** Asegurarse de que `pnpm run lint` y `pnpm run build` pasen sin errores tras auditar los componentes base.
 
 ---
 
