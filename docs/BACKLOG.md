@@ -5,20 +5,26 @@ Aquí mantenemos todas las ideas, mejoras y errores conocidos, ordenados por pri
 
 ---
 
-## 🏃 Sprint Activo (Sprint 2: Desarrollo de Funcionalidades Core - MVP)
+## 🏃 Sprint Activo (Sprint 1: Onboarding y Login)
 
-**[En Progreso]** -> Ver desglose detallado en [`docs/SPRINT_2.md`](SPRINT_2.md)
-**Objetivo del Sprint:** Crear el Layout Principal seguro para usuarios autenticados y desarrollar la vista central del Dashboard (MVP Core Funcional).
+**[En Progreso]** -> Ver desglose detallado en [`docs/SPRINT.md`](SPRINT.md)
+**Objetivo del Sprint:** Garantizar que el flujo de autenticación, el estado global (`useAuthStore`) y la integración inicial con Supabase funcionen de manera fluida y sin errores de consola o de experiencia de usuario.
 
 ### Tareas del Sprint (Por hacer / En Progreso / Hecho):
-- [ ] **TODO:** Desarrollar Layout Principal para usuarios autenticados.
-- [ ] **TODO:** Implementar la primera vista del Dashboard.
-- [ ] **TODO:** Crear el componente de navegación principal seguro (Sidebar/Navbar).
-- [ ] **TODO:** Definir y estructurar los demás estados globales en Zustand (ej. datos del perfil de usuario).
+- [ ] **TODO:** Revisar el flujo de Onboarding y Login para identificar problemas o bugs conocidos.
+- [ ] **TODO:** Asegurar que `src/store/authStore.ts` esté manejando los errores de Supabase correctamente y proporcionando feedback a la UI (`setError`).
+- [ ] **TODO:** Revisar y optimizar el diseño táctico de las pantallas de autenticación (`TacticalInput`, `tactical-glass`, etc).
+- [ ] **TODO:** Asegurarse de que `pnpm run lint` y `pnpm run build` pasen sin errores tras auditar los componentes base.
 
 ---
 
 ## 📅 Próximos Sprints (Planificados / En Evaluación)
+
+### Sprint 2: Desarrollo de Funcionalidades Core (MVP)
+- [ ] **Idea:** Desarrollar Layout Principal para usuarios autenticados.
+- [ ] **Idea:** Implementar la primera vista del Dashboard (¿qué datos verá el usuario?).
+- [ ] **Idea:** Crear el componente de navegación principal seguro (Sidebar/Navbar).
+- [ ] **Idea:** Definir y estructurar los demás estados globales en Zustand (ej. datos del perfil de usuario).
 
 ### Sprint 3: Refinamiento UI/UX y Optimización
 - [ ] **Idea:** Estandarizar componentes de UI bajo el sistema de diseño táctico.
@@ -29,16 +35,6 @@ Aquí mantenemos todas las ideas, mejoras y errores conocidos, ordenados por pri
 - [ ] **Idea:** Revisar políticas de RLS en base de datos Supabase.
 - [ ] **Idea:** Validar configuración de despliegue en Vercel (`vercel.json`).
 - [ ] **Idea:** Crear/Documentar pruebas básicas si es requerido.
-
----
-
-## 🗃️ Sprints Anteriores (Completados)
-
-### [Completado] Sprint 1: Onboarding y Login
-- [x] Consolidar y auditar los flujos de "Onboarding" y "Login/Registro".
-- [x] Integración de Auth con Supabase y manejo de estado con Zustand (`useAuthStore`).
-- [x] Eliminación de código obsoleto y mejora visual (`tactical-glass`, `TacticalInput`).
-- [x] Migración a pnpm.
 
 ---
 
