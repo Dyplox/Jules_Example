@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/authStore';
 import { Mail, Lock, Phone } from 'lucide-react';
 import { TacticalInput } from '../../components/ui/TacticalInput';
 import { useSettingsStore } from '../../store/settingsStore';
+import { Button } from '../../components/ui/Button';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -23,7 +24,13 @@ export default function Login() {
       await signIn(identifier, password);
       navigate('/');
     } catch (err: Error | unknown) {
-      setError((err as Error).message || 'Error al iniciar sesión');
+
+      let msg = (err as Error).message;
+      if (msg.includes('Invalid login credentials')) msg = 'Credenciales incorrectas';
+      if (msg.includes('User already registered')) msg = 'El usuario ya está registrado';
+      if (msg.includes('Password should be at least')) msg = 'La contraseña es muy corta';
+      if (msg.includes('duplicate key value')) msg = 'Este registro ya existe';
+      setError(msg || 'Error al iniciar sesión');
     } finally {
       setIsLoading(false);
     }
@@ -90,13 +97,9 @@ export default function Login() {
               required
             />
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
-            >
-              {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
-            </button>
+            <Button type="submit" className="w-full mt-6" isLoading={isLoading}>
+              {isLoading ? "Ingresando..." : "Iniciar Sesión"}
+            </Button>
 
             {pinSet && (
                <button

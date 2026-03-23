@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { useSettingsStore } from './store/settingsStore';
@@ -5,7 +6,6 @@ import { useSettingsStore } from './store/settingsStore';
 // Layouts & Pages
 import DashboardLayout from './components/layout/DashboardLayout';
 import Login from './pages/auth/Login';
-import { Register } from './pages/auth/Register';
 
 // Onboarding Pages
 import Slider from './pages/onboarding/Slider';
@@ -28,7 +28,15 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   const hasSeenOnboarding = useSettingsStore((state) => state.hasSeenOnboarding);
-  const { session } = useAuthStore();
+  const { session, isLoading, initializeAuth } = useAuthStore();
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white font-tactical">CARGANDO SISTEMA...</div>;
+  }
 
   return (
     <Router>
@@ -44,10 +52,6 @@ function App() {
         <Route
           path="/auth/login"
           element={!session ? (hasSeenOnboarding ? <Login /> : <Navigate to="/onboarding" />) : <Navigate to="/" />}
-        />
-        <Route
-          path="/auth/register"
-          element={!session ? <Register /> : <Navigate to="/" />}
         />
 
         {/* Protected Routes */}
