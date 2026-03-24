@@ -67,9 +67,9 @@ export default function Slider() {
         <div className="mb-12">
           {/* Indicators */}
           <div className="flex gap-2 mb-8">
-            {slides.map((_, index) => (
+            {slides.map((slide, index) => (
               <div
-                key={index}
+                key={slide.title}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   index === currentSlide ? 'w-8 bg-emerald-500' : 'w-2 bg-slate-600'
                 }`}
