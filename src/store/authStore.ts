@@ -12,17 +12,28 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  initializeAuth: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   session: null,
   user: null,
-  isLoading: false,
+  isLoading: true, // Start loading to avoid flickering
   error: null,
 
   setError: (error) => set({ error }),
 
-  setSession: (session) => set({ session, user: session?.user || null }),
+  setSession: (session) => set({ session, user: session?.user || null, isLoading: false }),
+
+  initializeAuth: () => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      set({ session, user: session?.user || null, isLoading: false });
+    });
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      set({ session, user: session?.user || null, isLoading: false });
+    });
+  },
 
   signIn: async (email, password) => {
     set({ isLoading: true, error: null });
@@ -32,7 +43,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ session: data.session, user: data.user, isLoading: false });
     } catch (error) {
       if (error instanceof Error) {
-        set({ error: error.message, isLoading: false });
+        let msg = error.message;
+        if (msg.includes('Invalid login credentials')) msg = 'Credenciales incorrectas';
+        if (msg.includes('User already registered')) msg = 'El usuario ya está registrado';
+        if (msg.includes('Password should be at least')) msg = 'La contraseña es muy corta';
+        set({ error: msg, isLoading: false });
       }
       throw error;
     }
@@ -46,7 +61,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ session: data.session, user: data.user, isLoading: false });
     } catch (error) {
        if (error instanceof Error) {
-        set({ error: error.message, isLoading: false });
+        let msg = error.message;
+        if (msg.includes('Invalid login credentials')) msg = 'Credenciales incorrectas';
+        if (msg.includes('User already registered')) msg = 'El usuario ya está registrado';
+        if (msg.includes('Password should be at least')) msg = 'La contraseña es muy corta';
+        set({ error: msg, isLoading: false });
       }
       throw error;
     }
@@ -60,7 +79,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ session: null, user: null, isLoading: false });
     } catch (error) {
        if (error instanceof Error) {
-        set({ error: error.message, isLoading: false });
+        let msg = error.message;
+        if (msg.includes('Invalid login credentials')) msg = 'Credenciales incorrectas';
+        if (msg.includes('User already registered')) msg = 'El usuario ya está registrado';
+        if (msg.includes('Password should be at least')) msg = 'La contraseña es muy corta';
+        set({ error: msg, isLoading: false });
       }
       throw error;
     }

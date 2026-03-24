@@ -1,14 +1,11 @@
-import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { supabase } from './lib/supabase';
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { useSettingsStore } from './store/settingsStore';
-import { Loader2 } from 'lucide-react';
 
 // Layouts & Pages
 import DashboardLayout from './components/layout/DashboardLayout';
 import Login from './pages/auth/Login';
-import { Register } from './pages/auth/Register';
 
 // Onboarding Pages
 import Slider from './pages/onboarding/Slider';
@@ -21,49 +18,28 @@ import OnboardingStep3Employee from './pages/onboarding/OnboardingStep3Employee'
 const Dashboard = () => <div className="p-4 text-white">Dashboard Principal GanadePro</div>;
 const Perfil = () => <div className="p-4 text-white">Mi Perfil / Configuración PIN</div>;
 
-const ProtectedRoute = () => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session } = useAuthStore();
   if (!session) {
-    return <Navigate to="/auth/login" replace />;
+    return <Navigate to="/auth/login" />;
   }
-  return <Outlet />;
+  return <>{children}</>;
 };
 
 function App() {
   const hasSeenOnboarding = useSettingsStore((state) => state.hasSeenOnboarding);
-  const { session, setSession } = useAuthStore();
-  const [isInitializing, setIsInitializing] = useState(true);
+  const { session, isLoading, initializeAuth } = useAuthStore();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setIsInitializing(false);
-    });
+    initializeAuth();
+  }, [initializeAuth]);
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [setSession]);
-
-  if (isInitializing) {
-    return (
-      <div className="min-h-screen bg-tactical-900 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 text-primary-500 animate-spin mx-auto mb-4" />
-          <p className="text-primary-400 text-sm tracking-widest uppercase animate-pulse">
-            Iniciando Sistemas Base...
-          </p>
-        </div>
-      </div>
-    );
+  if (isLoading) {
+    return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white font-tactical">CARGANDO SISTEMA...</div>;
   }
 
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         {/* Onboarding Flow */}
         <Route path="/onboarding" element={!hasSeenOnboarding ? <Slider /> : <Navigate to="/auth/login" />} />
@@ -77,22 +53,21 @@ function App() {
           path="/auth/login"
           element={!session ? (hasSeenOnboarding ? <Login /> : <Navigate to="/onboarding" />) : <Navigate to="/" />}
         />
-        <Route
-          path="/auth/register"
-          element={!session ? <Register /> : <Navigate to="/" />}
-        />
 
         {/* Protected Routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<DashboardLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/profile" element={<Perfil />} />
-          </Route>
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="profile" element={<Perfil />} />
         </Route>
-
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
 

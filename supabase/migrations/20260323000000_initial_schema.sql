@@ -5,7 +5,7 @@ CREATE TYPE public.user_role AS ENUM ('admin', 'employee');
 CREATE TABLE public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT,
-  birth_date DATE,
+  age INTEGER,
   phone TEXT,
   role public.user_role DEFAULT 'employee'::public.user_role,
   pin_hash TEXT,

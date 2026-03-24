@@ -5,6 +5,9 @@ import { TacticalInput } from '../../components/ui/TacticalInput';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { useSettingsStore } from '../../store/settingsStore';
+import { Button } from '../../components/ui/Button';
+import { validateAge, validatePin } from '../../utils/validators';
+
 // Note: In real production, we will import Capacitor Biometrics here
 
 export default function OnboardingStep2() {
@@ -14,28 +17,33 @@ export default function OnboardingStep2() {
   const setUseBiometrics = useSettingsStore((state) => state.setUseBiometrics);
 
   const [fullName, setFullName] = useState('');
-  const [birthDate, setBirthDate] = useState('');
+  const [age, setAge] = useState('');
   const [role, setRole] = useState<'admin' | 'employee'>('admin');
   const [pin, setPin] = useState('');
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow numeric input
-    const val = e.target.value.replace(/\D/g, '');
-    if (val.length <= 4) {
-      setPin(val);
-    }
-  };
-
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session?.user) return;
+    setError(null);
 
-    // Strict PIN validation
-    if (pin.length !== 4) {
-      setError('El PIN de seguridad debe contener exactamente 4 dígitos numéricos.');
+    // Validations
+    if (!fullName.trim()) {
+      setError('El nombre completo es requerido');
+      return;
+    }
+
+    const ageError = validateAge(age);
+    if (ageError) {
+      setError(ageError);
+      return;
+    }
+
+    const pinError = validatePin(pin);
+    if (pinError) {
+      setError(pinError);
       return;
     }
 
@@ -47,7 +55,7 @@ export default function OnboardingStep2() {
         {
           id: session.user.id,
           full_name: fullName,
-          birth_date: birthDate,
+          age: parseInt(age),
           role: role,
           pin_hash: pin, // In production, hash this properly
         }
@@ -66,7 +74,12 @@ export default function OnboardingStep2() {
         navigate('/onboarding/step3-employee');
       }
     } catch (err: Error | unknown) {
-      setError((err as Error).message || 'Error al guardar el perfil');
+      let msg = (err as Error).message;
+      if (msg.includes('Invalid login credentials')) msg = 'Credenciales incorrectas';
+      if (msg.includes('User already registered')) msg = 'El usuario ya está registrado';
+      if (msg.includes('Password should be at least')) msg = 'La contraseña es muy corta';
+      if (msg.includes('duplicate key value')) msg = 'Este registro ya existe';
+      setError(msg || 'Error al guardar el perfil');
     } finally {
       setIsLoading(false);
     }
@@ -103,11 +116,11 @@ export default function OnboardingStep2() {
             />
 
             <TacticalInput
-              label="Fecha de Nacimiento"
-              type="date"
+              label="Edad"
+              type="number"
               icon={<Calendar className="h-5 w-5 text-slate-400" />}
-              value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
               required
             />
 
@@ -157,7 +170,10 @@ export default function OnboardingStep2() {
                 pattern="[0-9]*"
                 maxLength={4}
                 value={pin}
-                onChange={handlePinChange}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '');
+                  if (val.length <= 4) setPin(val);
+                }}
                 required
                 placeholder="****"
               />
@@ -183,13 +199,9 @@ export default function OnboardingStep2() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors mt-6"
-            >
-              {isLoading ? 'Guardando...' : 'Continuar'}
-            </button>
+            <Button type="submit" className="w-full mt-6" isLoading={isLoading}>
+              {isLoading ? "Guardando..." : "Continuar"}
+            </Button>
           </form>
         </div>
       </div>

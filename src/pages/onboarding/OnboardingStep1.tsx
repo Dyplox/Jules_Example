@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { Mail, Lock, Phone } from 'lucide-react';
 import { TacticalInput } from '../../components/ui/TacticalInput';
+import { Button } from '../../components/ui/Button';
+import { validateEmail, validatePhone, validatePassword } from '../../utils/validators';
 
 export default function OnboardingStep1() {
   const navigate = useNavigate();
@@ -17,31 +19,42 @@ export default function OnboardingStep1() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     if (!acceptTerms) {
       setError('Debes aceptar los términos y condiciones.');
       return;
     }
 
-    // Password Validation Regex
-    // ^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      setError('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&).');
+    // Validations
+    if (method === 'email') {
+      const emailError = validateEmail(email);
+      if (emailError) { setError(emailError); return; }
+    } else {
+      const phoneError = validatePhone(phone);
+      if (phoneError) { setError(phoneError); return; }
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
     setIsLoading(true);
 
-    // In a real scenario with Supabase, we would handle phone auth differently.
-    // For MVP, we will rely on email mostly.
     const identifier = method === 'email' ? email : phone;
 
     try {
       await signUp(identifier, password);
-      // Move to step 2 after successful auth
       navigate('/onboarding/step2');
     } catch (err: Error | unknown) {
-      setError((err as Error).message || 'Error al crear la cuenta');
+      let msg = (err as Error).message;
+      if (msg.includes('Invalid login credentials')) msg = 'Credenciales incorrectas';
+      if (msg.includes('User already registered')) msg = 'El usuario ya está registrado';
+      if (msg.includes('Password should be at least')) msg = 'La contraseña es muy corta';
+      if (msg.includes('duplicate key value')) msg = 'Este registro ya existe';
+      setError(msg || 'Error al crear la cuenta');
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +98,7 @@ export default function OnboardingStep1() {
 
           <form className="space-y-6" onSubmit={handleRegister}>
             {error && (
-              <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm p-3 rounded-md">
+              <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm p-3 rounded-md error-box">
                 {error}
               </div>
             )}
@@ -117,7 +130,6 @@ export default function OnboardingStep1() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="Min 8 char, A-z, 0-9, @$!%*?&"
             />
 
             <div className="flex items-start">
@@ -140,13 +152,9 @@ export default function OnboardingStep1() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isLoading ? 'Registrando...' : 'Siguiente Paso'}
-            </button>
+            <Button type="submit" className="w-full mt-6" isLoading={isLoading}>
+              {isLoading ? "Registrando..." : "Siguiente Paso"}
+            </Button>
           </form>
 
           <div className="mt-6">
