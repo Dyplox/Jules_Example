@@ -1,20 +1,33 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { WifiOff, Tractor, Mail, Lock, ArrowRight, Home, RefreshCw, UserPlus } from 'lucide-react';
-import { Button } from '../../components/ui/Button';
-import { TacticalInput } from '../../components/ui/TacticalInput';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
+import { Mail, Lock, Phone, Tractor, WifiOff, ArrowRight } from 'lucide-react';
+import { TacticalInput } from '../../components/ui/TacticalInput';
+import { Button } from '../../components/ui/Button';
+import { useSettingsStore } from '../../store/settingsStore';
 
-export function Login() {
+export default function Login() {
   const navigate = useNavigate();
-  const { signIn, isLoading, error } = useAuthStore();
-  const [email, setEmail] = useState('');
+  const [method, setMethod] = useState<'email' | 'phone'>('email');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const { signIn, isLoading, error, setError } = useAuthStore();
+  const { useBiometrics, pinSet } = useSettingsStore();
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await signIn(email, password);
-    navigate('/');
+    try {
+      await signIn(identifier, password);
+      navigate('/');
+    } catch (err: Error | unknown) {
+      setError((err as Error).message || 'Error al iniciar sesión');
+    }
+  };
+
+  const handleQuickAccess = () => {
+    // Navigate to quick access PIN/Biometrics screen
+    console.log("Quick Access trigger");
   };
 
   return (
@@ -43,25 +56,43 @@ export function Login() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Method Toggle */}
+        <div className="flex bg-slate-200 rounded-none p-1 border-2 border-dark-header mb-6 shadow-[4px_4px_0_0_#0f172a]">
+          <button
+            onClick={() => setMethod('email')}
+            className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider transition-colors ${
+              method === 'email' ? 'bg-dark-header text-white' : 'text-slate-600 hover:text-dark-header'
+            }`}
+          >
+            Email
+          </button>
+          <button
+            onClick={() => setMethod('phone')}
+            className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider transition-colors ${
+              method === 'phone' ? 'bg-dark-header text-white' : 'text-slate-600 hover:text-dark-header'
+            }`}
+          >
+            Teléfono
+          </button>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-6">
           {error && (
-            <div className="bg-red-500 text-white font-tactical font-bold border-4 border-black p-4 text-sm uppercase">
+            <div className="bg-red-500 text-white font-tactical font-bold border-4 border-black p-4 text-sm uppercase shadow-[4px_4px_0_0_#000]">
               {error}
             </div>
           )}
 
-          {/* Campo Email */}
           <TacticalInput
-            label="Identificación (Email)"
-            type="email"
+            label={method === 'email' ? 'Identificación (Email)' : 'Número de Teléfono'}
+            type={method === 'email' ? 'email' : 'tel'}
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="EJ: OP@GANADEPRO.COM"
-            icon={<Mail className="h-6 w-6" />}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            placeholder={method === 'email' ? "EJ: OP@GANADEPRO.COM" : "EJ: +57 300..."}
+            icon={method === 'email' ? <Mail className="h-6 w-6" /> : <Phone className="h-6 w-6" />}
           />
 
-          {/* Campo Contraseña */}
           <TacticalInput
             label="Contraseña de Seguridad"
             type="password"
@@ -72,8 +103,7 @@ export function Login() {
             icon={<Lock className="h-6 w-6" />}
           />
 
-          {/* Botón Entrar */}
-          <div className="pt-4">
+          <div className="pt-4 space-y-4">
             <Button
               type="submit"
               variant="tactical-orange"
@@ -82,13 +112,23 @@ export function Login() {
             >
               ENTRAR AL SISTEMA
             </Button>
+
+            {pinSet && (
+               <Button
+                  type="button"
+                  variant="tactical-pro"
+                  onClick={handleQuickAccess}
+                  className="w-full h-16 text-lg font-tactical font-bold"
+                >
+                  ACCESO RÁPIDO {useBiometrics ? '(BIOMETRÍA / PIN)' : '(PIN)'}
+                </Button>
+            )}
           </div>
         </form>
 
-        {/* Link Volver al Login */}
         <div className="mt-8 text-center pb-8">
           <Link
-            to="/register"
+            to="/onboarding/step1"
             className="inline-flex items-center gap-2 text-dark-header font-bold uppercase tracking-tighter hover:underline decoration-2 underline-offset-4"
           >
             <ArrowRight className="h-5 w-5" strokeWidth={3} />
@@ -97,22 +137,7 @@ export function Login() {
         </div>
       </main>
 
-      {/* Bottom Navigation Simulado */}
-      <nav className="bg-white border-t-4 border-dark-header flex justify-around items-center py-2 px-4 mt-auto shrink-0">
-        <div className="flex flex-col items-center gap-1 p-2 text-dark-header/40 cursor-not-allowed">
-          <Home className="h-6 w-6" strokeWidth={2} />
-          <span className="text-[10px] font-bold uppercase font-tactical">Inicio</span>
-        </div>
-        <div className="flex flex-col items-center gap-1 p-2 text-dark-header/40 cursor-not-allowed">
-          <RefreshCw className="h-6 w-6" strokeWidth={2} />
-          <span className="text-[10px] font-bold uppercase font-tactical">Sinc</span>
-        </div>
-        <Link to="/register" className="flex flex-col items-center gap-1 p-2 text-dark-header hover:text-primary transition-colors">
-          <UserPlus className="h-6 w-6" strokeWidth={2} />
-          <span className="text-[10px] font-bold uppercase font-tactical">Registro</span>
-        </Link>
-      </nav>
-      <div className="fixed bottom-0 left-0 w-full h-1 bg-primary shrink-0 z-50"></div>
+      <div className="fixed bottom-0 left-0 w-full h-2 bg-primary shrink-0 z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.2)]"></div>
     </div>
   );
 }

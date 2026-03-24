@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">GanadePro</string>
+    <string name="title_activity_main">GanadePro</string>
+    <string name="package_name">com.ganadepro.app</string>
+    <string name="custom_url_scheme">com.ganadepro.app</string>
+</resources>
