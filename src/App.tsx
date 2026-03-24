@@ -2,31 +2,36 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './store/authStore';
-import { Login } from './pages/auth/Login';
-import { Register } from './pages/auth/Register';
-import { Welcome } from './pages/onboarding/Welcome';
-import { Setup } from './pages/onboarding/Setup';
-import { Dashboard } from './pages/Dashboard';
+import { useSettingsStore } from './store/settingsStore';
 import { Loader2 } from 'lucide-react';
+
+// Layouts & Pages
+import DashboardLayout from './components/layout/DashboardLayout';
+import Login from './pages/auth/Login';
+import { Register } from './pages/auth/Register';
+
+// Onboarding Pages
+import Slider from './pages/onboarding/Slider';
+import OnboardingStep1 from './pages/onboarding/OnboardingStep1';
+import OnboardingStep2 from './pages/onboarding/OnboardingStep2';
+import OnboardingStep3Admin from './pages/onboarding/OnboardingStep3Admin';
+import OnboardingStep3Employee from './pages/onboarding/OnboardingStep3Employee';
+
+// Basic Placeholder components for routing
+const Dashboard = () => <div className="p-4 text-white">Dashboard Principal GanadePro</div>;
+const Perfil = () => <div className="p-4 text-white">Mi Perfil / Configuración PIN</div>;
 
 const ProtectedRoute = () => {
   const { session } = useAuthStore();
   if (!session) {
-    return <Navigate to="/onboarding" replace />;
-  }
-  return <Outlet />;
-};
-
-const AuthRoute = () => {
-  const { session } = useAuthStore();
-  if (session) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/auth/login" replace />;
   }
   return <Outlet />;
 };
 
 function App() {
-  const { setSession } = useAuthStore();
+  const hasSeenOnboarding = useSettingsStore((state) => state.hasSeenOnboarding);
+  const { session, setSession } = useAuthStore();
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
@@ -60,15 +65,29 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<AuthRoute />}>
-          <Route path="/onboarding" element={<Welcome />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-        </Route>
+        {/* Onboarding Flow */}
+        <Route path="/onboarding" element={!hasSeenOnboarding ? <Slider /> : <Navigate to="/auth/login" />} />
+        <Route path="/onboarding/step1" element={<OnboardingStep1 />} />
+        <Route path="/onboarding/step2" element={<OnboardingStep2 />} />
+        <Route path="/onboarding/step3-admin" element={<OnboardingStep3Admin />} />
+        <Route path="/onboarding/step3-employee" element={<OnboardingStep3Employee />} />
 
+        {/* Auth Routes */}
+        <Route
+          path="/auth/login"
+          element={!session ? (hasSeenOnboarding ? <Login /> : <Navigate to="/onboarding" />) : <Navigate to="/" />}
+        />
+        <Route
+          path="/auth/register"
+          element={!session ? <Register /> : <Navigate to="/" />}
+        />
+
+        {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/onboarding/setup" element={<Setup />} />
-          <Route path="/" element={<Dashboard />} />
+          <Route element={<DashboardLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/profile" element={<Perfil />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

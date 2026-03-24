@@ -1,0 +1,181 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { User, Calendar, ShieldCheck } from 'lucide-react';
+import { TacticalInput } from '../../components/ui/TacticalInput';
+import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../store/authStore';
+import { useSettingsStore } from '../../store/settingsStore';
+// Note: In real production, we will import Capacitor Biometrics here
+
+export default function OnboardingStep2() {
+  const navigate = useNavigate();
+  const { session } = useAuthStore();
+  const setPinSet = useSettingsStore((state) => state.setPinSet);
+  const setUseBiometrics = useSettingsStore((state) => state.setUseBiometrics);
+
+  const [fullName, setFullName] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [role, setRole] = useState<'admin' | 'employee'>('admin');
+  const [pin, setPin] = useState('');
+  const [biometricsEnabled, setBiometricsEnabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session?.user) return;
+    setIsLoading(true);
+
+    try {
+      // Create profile record
+      const { error: profileError } = await supabase.from('profiles').insert([
+        {
+          id: session.user.id,
+          full_name: fullName,
+          birth_date: birthDate,
+          role: role,
+          pin_hash: pin, // In production, hash this properly
+        }
+      ]);
+
+      if (profileError) throw profileError;
+
+      // Update local settings
+      setPinSet(true);
+      setUseBiometrics(biometricsEnabled);
+
+      // Navigate based on role
+      if (role === 'admin') {
+        navigate('/onboarding/step3-admin');
+      } else {
+        navigate('/onboarding/step3-employee');
+      }
+    } catch (err: Error | unknown) {
+      setError((err as Error).message || 'Error al guardar el perfil');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-900 flex flex-col justify-center px-6 py-12 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
+          Configurar Perfil
+        </h2>
+        <p className="mt-2 text-center text-sm text-slate-400">
+          Paso 2 de 3: Datos personales y seguridad
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-slate-800 py-8 px-4 shadow sm:rounded-lg sm:px-10 tactical-glass border border-slate-700">
+
+          <form className="space-y-6" onSubmit={handleSaveProfile}>
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm p-3 rounded-md">
+                {error}
+              </div>
+            )}
+
+            <TacticalInput
+              label="Nombre Completo"
+              type="text"
+              icon={<User className="h-5 w-5 text-slate-400" />}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
+
+            <TacticalInput
+              label="Fecha de Nacimiento"
+              type="date"
+              icon={<Calendar className="h-5 w-5 text-slate-400" />}
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+              required
+            />
+
+            {/* Role Selection */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-300">
+                ¿Cuál es tu rol?
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setRole('admin')}
+                  className={`p-4 border rounded-lg text-center transition-colors ${
+                    role === 'admin'
+                      ? 'bg-emerald-600 border-emerald-500 text-white'
+                      : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span className="block font-semibold">Dueño / Admin</span>
+                  <span className="text-xs mt-1 block opacity-80">Administra fincas</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole('employee')}
+                  className={`p-4 border rounded-lg text-center transition-colors ${
+                    role === 'employee'
+                      ? 'bg-emerald-600 border-emerald-500 text-white'
+                      : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span className="block font-semibold">Empleado</span>
+                  <span className="text-xs mt-1 block opacity-80">Únete a una finca</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-700">
+              <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
+                <ShieldCheck className="h-5 w-5 text-emerald-500" />
+                Seguridad de Acceso Rápido
+              </h3>
+
+              <TacticalInput
+                label="Crear PIN (4 dígitos)"
+                type="password"
+                maxLength={4}
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                required
+                placeholder="****"
+              />
+
+              <div className="mt-4 flex items-center justify-between bg-slate-900 p-4 rounded-lg border border-slate-700">
+                <div>
+                  <h4 className="text-sm font-medium text-white">Usar Biometría</h4>
+                  <p className="text-xs text-slate-400">Huella digital o FaceID</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBiometricsEnabled(!biometricsEnabled)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${
+                    biometricsEnabled ? 'bg-emerald-500' : 'bg-slate-600'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      biometricsEnabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors mt-6"
+            >
+              {isLoading ? 'Guardando...' : 'Continuar'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

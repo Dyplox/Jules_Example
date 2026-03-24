@@ -22,6 +22,13 @@ export function Register() {
       setLocalError('Los códigos de acceso no coinciden');
       return;
     }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setLocalError('El código debe tener 8 caracteres, mayúscula, minúscula, número y símbolo especial.');
+      return;
+    }
+
     await signUp(email, password);
     navigate('/onboarding');
   };
@@ -43,7 +50,7 @@ export function Register() {
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6 tactical-glass p-8 rounded-2xl">
           {(error || localError) && (
-            <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-lg text-sm">
+            <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-lg text-sm font-tactical">
               {localError || error}
             </div>
           )}
@@ -63,7 +70,7 @@ export function Register() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Mínimo 8 caracteres"
+              placeholder="Min 8 char, A-z, 0-9, @$!%*?&"
             />
             <TacticalInput
               label="Confirmar Código"
