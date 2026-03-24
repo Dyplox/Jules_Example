@@ -6,6 +6,8 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import { Button } from '../../components/ui/Button';
+import { validateAge, validatePin } from '../../utils/validators';
+
 // Note: In real production, we will import Capacitor Biometrics here
 
 export default function OnboardingStep2() {
@@ -25,6 +27,26 @@ export default function OnboardingStep2() {
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session?.user) return;
+    setError(null);
+
+    // Validations
+    if (!fullName.trim()) {
+      setError('El nombre completo es requerido');
+      return;
+    }
+
+    const ageError = validateAge(age);
+    if (ageError) {
+      setError(ageError);
+      return;
+    }
+
+    const pinError = validatePin(pin);
+    if (pinError) {
+      setError(pinError);
+      return;
+    }
+
     setIsLoading(true);
 
     try {

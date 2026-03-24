@@ -4,6 +4,8 @@ import { useAuthStore } from '../../store/authStore';
 import { Mail, Lock, Phone } from 'lucide-react';
 import { TacticalInput } from '../../components/ui/TacticalInput';
 import { Button } from '../../components/ui/Button';
+import { validateEmail, validatePhone, validatePassword } from '../../utils/validators';
+
 
 export default function OnboardingStep1() {
   const navigate = useNavigate();
@@ -18,10 +20,28 @@ export default function OnboardingStep1() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     if (!acceptTerms) {
       setError('Debes aceptar los términos y condiciones.');
       return;
     }
+
+    // Validations
+    if (method === 'email') {
+      const emailError = validateEmail(email);
+      if (emailError) { setError(emailError); return; }
+    } else {
+      const phoneError = validatePhone(phone);
+      if (phoneError) { setError(phoneError); return; }
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
+
     setIsLoading(true);
 
     // In a real scenario with Supabase, we would handle phone auth differently.
@@ -81,7 +101,7 @@ export default function OnboardingStep1() {
 
           <form className="space-y-6" onSubmit={handleRegister}>
             {error && (
-              <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm p-3 rounded-md">
+              <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm p-3 rounded-md error-box">
                 {error}
               </div>
             )}

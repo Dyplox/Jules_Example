@@ -5,6 +5,8 @@ import { Mail, Lock, Phone } from 'lucide-react';
 import { TacticalInput } from '../../components/ui/TacticalInput';
 import { useSettingsStore } from '../../store/settingsStore';
 import { Button } from '../../components/ui/Button';
+import { validateEmail, validatePhone, validatePassword } from '../../utils/validators';
+
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,6 +20,21 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    // Validations
+    const identifierError = method === 'email' ? validateEmail(identifier) : validatePhone(identifier);
+    if (identifierError) {
+      setError(identifierError);
+      return;
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
