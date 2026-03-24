@@ -20,7 +20,6 @@ export const useNetworkStore = create<NetworkState>((set) => ({
     // Listen for changes
     Network.addListener('networkStatusChange', (status: ConnectionStatus) => {
       set({ isOnline: status.connected, connectionType: status.connectionType });
-      console.log('Network status changed', status);
 
       // If we just came online, we could trigger a sync here
       if (status.connected) {
