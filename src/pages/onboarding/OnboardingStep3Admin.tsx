@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { MapPin, Info, PlusCircle } from 'lucide-react';
 import { TacticalInput } from '../../components/ui/TacticalInput';
+import { generateSecureInviteCode } from '../../utils/crypto';
 
 export default function OnboardingStep3Admin() {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export default function OnboardingStep3Admin() {
 
     try {
       // Create Farm
-      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const inviteCode = generateSecureInviteCode();
       const { data: farm, error: farmError } = await supabase
         .from('farms')
         .insert([{
