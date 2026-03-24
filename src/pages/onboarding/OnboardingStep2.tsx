@@ -74,7 +74,6 @@ export default function OnboardingStep2() {
         navigate('/onboarding/step3-employee');
       }
     } catch (err: Error | unknown) {
-
       let msg = (err as Error).message;
       if (msg.includes('Invalid login credentials')) msg = 'Credenciales incorrectas';
       if (msg.includes('User already registered')) msg = 'El usuario ya está registrado';
@@ -165,11 +164,16 @@ export default function OnboardingStep2() {
               </h3>
 
               <TacticalInput
-                label="Crear PIN (4 dígitos)"
+                label="Crear PIN (4 dígitos numéricos)"
                 type="password"
-                maxLength={4} inputMode="numeric" pattern="\\d{4}"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={4}
                 value={pin}
-                onChange={(e) => setPin(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '');
+                  if (val.length <= 4) setPin(val);
+                }}
                 required
                 placeholder="****"
               />

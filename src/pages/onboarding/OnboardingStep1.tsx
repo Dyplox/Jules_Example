@@ -6,7 +6,6 @@ import { TacticalInput } from '../../components/ui/TacticalInput';
 import { Button } from '../../components/ui/Button';
 import { validateEmail, validatePhone, validatePassword } from '../../utils/validators';
 
-
 export default function OnboardingStep1() {
   const navigate = useNavigate();
   const [method, setMethod] = useState<'email' | 'phone'>('email');
@@ -44,16 +43,12 @@ export default function OnboardingStep1() {
 
     setIsLoading(true);
 
-    // In a real scenario with Supabase, we would handle phone auth differently.
-    // For MVP, we will rely on email mostly.
     const identifier = method === 'email' ? email : phone;
 
     try {
       await signUp(identifier, password);
-      // Move to step 2 after successful auth
       navigate('/onboarding/step2');
     } catch (err: Error | unknown) {
-
       let msg = (err as Error).message;
       if (msg.includes('Invalid login credentials')) msg = 'Credenciales incorrectas';
       if (msg.includes('User already registered')) msg = 'El usuario ya está registrado';
@@ -82,6 +77,7 @@ export default function OnboardingStep1() {
           {/* Method Toggle */}
           <div className="flex bg-slate-900 rounded-lg p-1 mb-6">
             <button
+              type="button"
               onClick={() => setMethod('email')}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
                 method === 'email' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
@@ -90,6 +86,7 @@ export default function OnboardingStep1() {
               Email
             </button>
             <button
+              type="button"
               onClick={() => setMethod('phone')}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
                 method === 'phone' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'

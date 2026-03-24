@@ -50,7 +50,6 @@ export default function OnboardingStep3Employee() {
       // Done -> Dashboard
       navigate('/');
     } catch (err: Error | unknown) {
-
       let msg = (err as Error).message;
       if (msg.includes('Invalid login credentials')) msg = 'Credenciales incorrectas';
       if (msg.includes('User already registered')) msg = 'El usuario ya está registrado';

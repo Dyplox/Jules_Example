@@ -3,10 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { Mail, Lock, Phone } from 'lucide-react';
 import { TacticalInput } from '../../components/ui/TacticalInput';
-import { useSettingsStore } from '../../store/settingsStore';
 import { Button } from '../../components/ui/Button';
+import { useSettingsStore } from '../../store/settingsStore';
 import { validateEmail, validatePhone, validatePassword } from '../../utils/validators';
-
 
 export default function Login() {
   const navigate = useNavigate();
@@ -41,7 +40,6 @@ export default function Login() {
       await signIn(identifier, password);
       navigate('/');
     } catch (err: Error | unknown) {
-
       let msg = (err as Error).message;
       if (msg.includes('Invalid login credentials')) msg = 'Credenciales incorrectas';
       if (msg.includes('User already registered')) msg = 'El usuario ya está registrado';
@@ -54,7 +52,6 @@ export default function Login() {
   };
 
   const handleQuickAccess = () => {
-    // Navigate to quick access PIN/Biometrics screen
     // TODO: implement unlock screen
     console.log("Quick Access trigger");
   };
@@ -70,6 +67,7 @@ export default function Login() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-slate-800 py-8 px-4 shadow sm:rounded-lg sm:px-10 tactical-glass border border-slate-700">
 
+          {/* Method Toggle */}
           <div className="flex bg-slate-900 rounded-lg p-1 mb-6">
             <button
               onClick={() => setMethod('email')}

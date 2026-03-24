@@ -30,7 +30,9 @@ GanadePro es una aplicación orientada al sector ganadero (fincas) diseñada par
 
 ### 2.4 Seguridad y Calidad
 - Implementación de Row Level Security (RLS) en Supabase para asegurar que los empleados solo vean datos de la finca asignada, y los dueños solo sus fincas.
-- Validación estricta de datos en el cliente.
+- Validación estricta de datos en el cliente mediante utilidades centralizadas (`validators.ts`).
+- Manejo de errores claro y amigable en la UI.
+- Código limpio que pase `pnpm run lint` y `pnpm run build` sin advertencias críticas.
 - Uso exclusivo de `pnpm`.
 
 ## 3. Fuera de Alcance (Out of Scope) para el MVP
@@ -40,6 +42,8 @@ Lo siguiente **NO** se incluirá en el desarrollo inicial del MVP, pero puede pl
 - Soporte multi-idioma (Internacionalización); el MVP será exclusivamente en español.
 - Integración con hardware externo de fincas (ej. básculas Bluetooth, crotales RFID) en esta primera fase.
 - Módulo de contabilidad o facturación electrónica compleja (solo registro básico de ventas/producción).
+- Login Social (Google, GitHub, Apple, etc.) a menos que se solicite explícitamente como reemplazo del login tradicional.
+- Implementación de notificaciones Push (PWA) avanzadas o por correo electrónico transaccionales complejas.
 
 ## 4. Gestión de Cambios (Change Management)
 Cualquier requerimiento nuevo solicitado por el Stakeholder que no esté explícitamente detallado en la sección 2 ("En Alcance"), será evaluado por el Product Owner (IA). Si el esfuerzo técnico es significativo, se añadirá a la sección "Icebox" o "Próximos Sprints" en el `BACKLOG.md` para no comprometer los tiempos de entrega de la versión actual.

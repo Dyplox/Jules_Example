@@ -33,7 +33,7 @@ export default function OnboardingStep3Admin() {
     setIsLoading(true);
 
     try {
-      // Create Farm
+      // Create Farm with a secure invite code
       const inviteCode = generateSecureInviteCode();
       const { data: farm, error: farmError } = await supabase
         .from('farms')
@@ -64,7 +64,6 @@ export default function OnboardingStep3Admin() {
       // Finish Onboarding -> Redirect to Dashboard
       navigate('/');
     } catch (err: Error | unknown) {
-
       let msg = (err as Error).message;
       if (msg.includes('Invalid login credentials')) msg = 'Credenciales incorrectas';
       if (msg.includes('User already registered')) msg = 'El usuario ya está registrado';
