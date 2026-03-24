@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { MapPin, Info, PlusCircle } from 'lucide-react';
 import { TacticalInput } from '../../components/ui/TacticalInput';
+import { Button } from '../../components/ui/Button';
 import { generateSecureInviteCode } from '../../utils/crypto';
 
 export default function OnboardingStep3Admin() {
@@ -63,7 +64,13 @@ export default function OnboardingStep3Admin() {
       // Finish Onboarding -> Redirect to Dashboard
       navigate('/');
     } catch (err: Error | unknown) {
-      setError((err as Error).message || 'Error al crear la finca');
+
+      let msg = (err as Error).message;
+      if (msg.includes('Invalid login credentials')) msg = 'Credenciales incorrectas';
+      if (msg.includes('User already registered')) msg = 'El usuario ya está registrado';
+      if (msg.includes('Password should be at least')) msg = 'La contraseña es muy corta';
+      if (msg.includes('duplicate key value')) msg = 'Este registro ya existe';
+      setError(msg || 'Error al crear la finca');
     } finally {
       setIsLoading(false);
     }
@@ -145,13 +152,9 @@ export default function OnboardingStep3Admin() {
               </button>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
-            >
-              {isLoading ? 'Guardando...' : 'Finalizar y Entrar'}
-            </button>
+            <Button type="submit" className="w-full mt-6" isLoading={isLoading}>
+              {isLoading ? "Guardando..." : "Finalizar y Entrar"}
+            </Button>
           </form>
         </div>
       </div>

@@ -31,13 +31,13 @@ export default function Slider() {
       setCurrentSlide((prev) => prev + 1);
     } else {
       setHasSeenOnboarding(true);
-      navigate('/auth/register');
+      navigate('/onboarding/step1');
     }
   };
 
   const handleSkip = () => {
     setHasSeenOnboarding(true);
-    navigate('/auth/register');
+    navigate('/onboarding/step1');
   };
 
   return (
