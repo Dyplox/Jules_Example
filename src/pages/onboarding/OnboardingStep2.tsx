@@ -21,9 +21,24 @@ export default function OnboardingStep2() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numeric input
+    const val = e.target.value.replace(/\D/g, '');
+    if (val.length <= 4) {
+      setPin(val);
+    }
+  };
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session?.user) return;
+
+    // Strict PIN validation
+    if (pin.length !== 4) {
+      setError('El PIN de seguridad debe contener exactamente 4 dígitos numéricos.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -136,11 +151,13 @@ export default function OnboardingStep2() {
               </h3>
 
               <TacticalInput
-                label="Crear PIN (4 dígitos)"
+                label="Crear PIN (4 dígitos numéricos)"
                 type="password"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 maxLength={4}
                 value={pin}
-                onChange={(e) => setPin(e.target.value)}
+                onChange={handlePinChange}
                 required
                 placeholder="****"
               />
