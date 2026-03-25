@@ -107,7 +107,7 @@ export default function OnboardingStep2() {
             )}
 
             <TacticalInput
-              label="Nombre Completo"
+              id="fullName" name="fullName" label="Nombre Completo"
               type="text"
               icon={<User className="h-5 w-5 text-slate-400" />}
               value={fullName}
@@ -116,7 +116,7 @@ export default function OnboardingStep2() {
             />
 
             <TacticalInput
-              label="Edad"
+              id="age" name="age" label="Edad"
               type="number"
               icon={<Calendar className="h-5 w-5 text-slate-400" />}
               value={age}
@@ -164,7 +164,7 @@ export default function OnboardingStep2() {
               </h3>
 
               <TacticalInput
-                label="Crear PIN (4 dígitos numéricos)"
+                id="pin" name="pin" label="Crear PIN (4 dígitos numéricos)"
                 type="password"
                 inputMode="numeric"
                 pattern="[0-9]*"
