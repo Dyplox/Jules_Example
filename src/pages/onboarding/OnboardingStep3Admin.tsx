@@ -141,14 +141,15 @@ export default function OnboardingStep3Admin() {
                 </div>
               ))}
 
-              <button
+              <Button
                 type="button"
                 onClick={handleAddLot}
-                className="mt-2 flex items-center text-emerald-500 hover:text-emerald-400 text-sm font-medium transition-colors"
+                variant="tactical"
+                className="w-full mt-4"
               >
-                <PlusCircle className="h-4 w-4 mr-1" />
+                <PlusCircle className="h-5 w-5 mr-2" />
                 Agregar otro lote
-              </button>
+              </Button>
             </div>
 
             <Button type="submit" className="w-full mt-6" isLoading={isLoading}>
