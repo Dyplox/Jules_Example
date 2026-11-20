@@ -6,6 +6,9 @@ import { TacticalInput } from '../../components/ui/TacticalInput';
 import { Button } from '../../components/ui/Button';
 import { useSettingsStore } from '../../store/settingsStore';
 import { validateEmail, validatePhone, validatePassword } from '../../utils/validators';
+import { TacticalPinPad } from '../../components/auth/TacticalPinPad';
+import { hashPin } from '../../utils/crypto';
+import { supabase } from '../../lib/supabase';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,9 +16,10 @@ export default function Login() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showQuickAccess, setShowQuickAccess] = useState(false);
 
-  const { signIn, error, setError } = useAuthStore();
-  const { useBiometrics, pinSet } = useSettingsStore();
+  const { signIn, session, error, setError } = useAuthStore();
+  const { useBiometrics, pinSet, lastIdentifier, setLastIdentifier, lastUserId, setLastUserId } = useSettingsStore();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +42,12 @@ export default function Login() {
 
     try {
       await signIn(identifier, password);
+      setLastIdentifier(identifier);
+      // After signIn, session should be available in the store
+      const { data: { session: newSession } } = await supabase.auth.getSession();
+      if (newSession?.user) {
+        setLastUserId(newSession.user.id);
+      }
       navigate('/');
     } catch (err: Error | unknown) {
       let msg = (err as Error).message;
@@ -52,8 +62,57 @@ export default function Login() {
   };
 
   const handleQuickAccess = () => {
-    // TODO: implement unlock screen
-    console.log("Quick Access trigger");
+    setError(null);
+    setShowQuickAccess(true);
+  };
+
+  const handlePinComplete = async (pin: string) => {
+    if (!lastUserId) {
+      setError("No hay una sesión previa vinculada a este dispositivo.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const hashedPin = await hashPin(pin);
+
+      // Verify the PIN specifically for the last user who logged in on this device.
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, pin_hash')
+        .eq('id', lastUserId)
+        .eq('pin_hash', hashedPin)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+
+      if (profile) {
+        // PIN matches the stored hash for this specific user.
+        console.log("PIN verified for user:", profile.id);
+
+        // Check if there is still a valid Supabase session.
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+        if (currentSession && currentSession.user.id === lastUserId) {
+          // Session is valid and belongs to the same user.
+          navigate('/');
+        } else {
+          // If no session exists, we cannot "log in" with just a PIN in Supabase
+          // without a custom backend. We inform the user they need their password.
+          setError("La sesión ha expirado. Inicie sesión con su contraseña.");
+          setShowQuickAccess(false);
+        }
+      } else {
+        setError("PIN incorrecto");
+      }
+    } catch (err) {
+      console.error("PIN verification error:", err);
+      setError("Error al verificar el PIN");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -67,65 +126,84 @@ export default function Login() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-slate-800 py-8 px-4 shadow sm:rounded-lg sm:px-10 tactical-glass border border-slate-700">
 
-          {/* Method Toggle */}
-          <div className="flex bg-slate-900 rounded-lg p-1 mb-6">
-            <button
-              onClick={() => setMethod('email')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                method === 'email' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Email
-            </button>
-            <button
-              onClick={() => setMethod('phone')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                method === 'phone' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Teléfono
-            </button>
-          </div>
-
-          <form className="space-y-6" onSubmit={handleLogin}>
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm p-3 rounded-md">
-                {error}
-              </div>
-            )}
-
-            <TacticalInput
-              label={method === 'email' ? 'Correo Electrónico' : 'Número de Teléfono'}
-              type={method === 'email' ? 'email' : 'tel'}
-              icon={method === 'email' ? <Mail className="h-5 w-5 text-slate-400" /> : <Phone className="h-5 w-5 text-slate-400" />}
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              required
-            />
-
-            <TacticalInput
-              label="Contraseña"
-              type="password"
-              icon={<Lock className="h-5 w-5 text-slate-400" />}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-
-            <Button type="submit" className="w-full mt-6" isLoading={isLoading}>
-              {isLoading ? "Ingresando..." : "Iniciar Sesión"}
-            </Button>
-
-            {pinSet && (
-               <button
-                  type="button"
-                  onClick={handleQuickAccess}
-                  className="w-full mt-3 flex justify-center py-3 px-4 border border-slate-600 rounded-md text-sm font-medium text-slate-300 hover:text-white bg-slate-900 transition-colors"
+          {showQuickAccess ? (
+            <div className="py-4">
+              {lastIdentifier && (
+                <div className="mb-6 text-center">
+                  <p className="text-slate-400 text-sm">Accediendo como</p>
+                  <p className="text-white font-bold">{lastIdentifier}</p>
+                </div>
+              )}
+              <TacticalPinPad
+                onComplete={handlePinComplete}
+                onCancel={() => setShowQuickAccess(false)}
+                isLoading={isLoading}
+                error={error}
+              />
+            </div>
+          ) : (
+            <>
+              {/* Method Toggle */}
+              <div className="flex bg-slate-900 rounded-lg p-1 mb-6">
+                <button
+                  onClick={() => setMethod('email')}
+                  className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                    method === 'email' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+                  }`}
                 >
-                  Acceso Rápido {useBiometrics ? '(Biometría / PIN)' : '(PIN)'}
+                  Email
                 </button>
-            )}
-          </form>
+                <button
+                  onClick={() => setMethod('phone')}
+                  className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                    method === 'phone' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Teléfono
+                </button>
+              </div>
+
+              <form className="space-y-6" onSubmit={handleLogin}>
+                {error && (
+                  <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-sm p-3 rounded-md">
+                    {error}
+                  </div>
+                )}
+
+                <TacticalInput
+                  label={method === 'email' ? 'Correo Electrónico' : 'Número de Teléfono'}
+                  type={method === 'email' ? 'email' : 'tel'}
+                  icon={method === 'email' ? <Mail className="h-5 w-5 text-slate-400" /> : <Phone className="h-5 w-5 text-slate-400" />}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  required
+                />
+
+                <TacticalInput
+                  label="Contraseña"
+                  type="password"
+                  icon={<Lock className="h-5 w-5 text-slate-400" />}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+
+                <Button type="submit" className="w-full mt-6" isLoading={isLoading}>
+                  {isLoading ? "Ingresando..." : "Iniciar Sesión"}
+                </Button>
+
+                {pinSet && (
+                  <button
+                    type="button"
+                    onClick={handleQuickAccess}
+                    className="w-full mt-3 flex justify-center py-3 px-4 border border-slate-600 rounded-md text-sm font-medium text-slate-300 hover:text-white bg-slate-900 transition-colors"
+                  >
+                    Acceso Rápido {useBiometrics ? '(Biometría / PIN)' : '(PIN)'}
+                  </button>
+                )}
+              </form>
+            </>
+          )}
 
           <div className="mt-6 text-center">
              <p className="text-sm text-slate-400">

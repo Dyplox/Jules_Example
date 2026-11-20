@@ -24,3 +24,18 @@ export function generateSecureInviteCode(length: number = 6): string {
 
   return result;
 }
+
+/**
+ * Hashes a PIN string using SHA-256.
+ * Uses Web Crypto API (crypto.subtle) which is available in modern browsers and Capacitor.
+ *
+ * @param pin The 4-digit PIN string
+ * @returns A hex string of the SHA-256 hash
+ */
+export async function hashPin(pin: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pin);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
