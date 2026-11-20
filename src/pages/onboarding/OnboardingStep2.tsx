@@ -7,6 +7,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import { Button } from '../../components/ui/Button';
 import { validateAge, validatePin } from '../../utils/validators';
+import { hashPin } from '../../utils/crypto';
 
 // Note: In real production, we will import Capacitor Biometrics here
 
@@ -15,6 +16,7 @@ export default function OnboardingStep2() {
   const { session } = useAuthStore();
   const setPinSet = useSettingsStore((state) => state.setPinSet);
   const setUseBiometrics = useSettingsStore((state) => state.setUseBiometrics);
+  const setLastUserId = useSettingsStore((state) => state.setLastUserId);
 
   const [fullName, setFullName] = useState('');
   const [age, setAge] = useState('');
@@ -50,6 +52,8 @@ export default function OnboardingStep2() {
     setIsLoading(true);
 
     try {
+      const hashedPin = await hashPin(pin);
+
       // Create profile record
       const { error: profileError } = await supabase.from('profiles').insert([
         {
@@ -57,7 +61,7 @@ export default function OnboardingStep2() {
           full_name: fullName,
           age: parseInt(age),
           role: role,
-          pin_hash: pin, // In production, hash this properly
+          pin_hash: hashedPin,
         }
       ]);
 
@@ -66,6 +70,7 @@ export default function OnboardingStep2() {
       // Update local settings
       setPinSet(true);
       setUseBiometrics(biometricsEnabled);
+      setLastUserId(session.user.id);
 
       // Navigate based on role
       if (role === 'admin') {
